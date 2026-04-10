@@ -91,6 +91,12 @@ docker-compose up mongo -d
 # Ingest data
 npm run ingest
 
+# The ingest script uses upsert — safe to run multiple times.
+# On first run it inserts all records. On subsequent runs it
+# updates existing records with the latest source data.
+# This means if the source CSV is updated, re-running the
+# script keeps the database current without duplicating data.
+
 # Start API
 npm run dev
 ```

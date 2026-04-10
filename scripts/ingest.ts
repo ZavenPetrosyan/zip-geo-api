@@ -25,13 +25,6 @@ async function ingest() {
 
   await connectDB();
 
-  const existingCount = await Location.countDocuments();
-  if (existingCount > 0) {
-    console.log(`Data already exists (${existingCount} documents). Exiting.`);
-    await disconnectDB();
-    process.exit(0);
-  }
-
   const csvPath = path.join(__dirname, 'data', 'us-zip-codes.csv');
   const csvContent = fs.readFileSync(csvPath, 'utf-8');
 
@@ -51,7 +44,7 @@ async function ingest() {
       population: row.population ? parseInt(row.population, 10) : undefined,
       location: {
         type: 'Point' as const,
-        coordinates: [parseFloat(row.lng), parseFloat(row.lat)],
+        coordinates: [parseFloat(row.lng), parseFloat(row.lat)] as [number, number],
       },
     }));
 
@@ -60,17 +53,25 @@ async function ingest() {
   }
 
   const batchSize = 500;
-  let inserted = 0;
+  let upserted = 0;
 
   for (let i = 0; i < documents.length; i += batchSize) {
     const batch = documents.slice(i, i + batchSize);
-    await Location.insertMany(batch);
-    inserted += batch.length;
-    console.log(`Inserted ${inserted} / ${documents.length} documents`);
+    const bulkOps = batch.map(record => ({
+      updateOne: {
+        filter: { zip: record.zip },
+        update: { $set: record },
+        upsert: true,
+      },
+    }));
+
+    await Location.bulkWrite(bulkOps);
+    upserted += batch.length;
+    console.log(`Upserted ${upserted} / ${documents.length} documents`);
   }
 
   const elapsed = Date.now() - startTime;
-  console.log(`Ingestion complete. Total inserted: ${inserted} documents in ${elapsed}ms`);
+  console.log(`Ingestion complete. Total upserted: ${upserted} documents in ${elapsed}ms`);
 
   await disconnectDB();
 }
