@@ -1,0 +1,24 @@
+node_modules/
+.env
+
+# Build output
+dist/
+
+# Data files
+scripts/data/*.csv
+scripts/data/*.zip
+scripts/data/*.xlsx
+scripts/data/*.pdf
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
