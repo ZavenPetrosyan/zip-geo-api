@@ -1,21 +1,9 @@
 import fp from 'fastify-plugin';
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyError } from 'fastify';
 import { ZodError } from 'zod';
 
 async function errorHandlerPlugin(fastify: FastifyInstance) {
-  fastify.setErrorHandler((error, request, reply) => {
-    if (error.code === 'FST_ERR_VALIDATION') {
-      try {
-        const parsed = JSON.parse(error.message);
-        return reply.status(400).send(parsed);
-      } catch {
-        return reply.status(400).send({
-          error: 'VALIDATION_ERROR',
-          message: error.message,
-        });
-      }
-    }
-
+  fastify.setErrorHandler((error: FastifyError, request, reply) => {
     if (error instanceof ZodError) {
       return reply.status(400).send({
         error: 'VALIDATION_ERROR',
@@ -23,7 +11,7 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
       });
     }
 
-    if (error.name === 'ZodError') {
+    if ((error as Error).name === 'ZodError') {
       return reply.status(400).send({
         error: 'VALIDATION_ERROR',
         message: (error as unknown as ZodError).issues?.[0]?.message
@@ -31,7 +19,7 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
       });
     }
 
-    if (error.statusCode === 404) {
+    if ((error as FastifyError).statusCode === 404) {
       return reply.status(404).send({
         error: 'NOT_FOUND',
         message: 'Route not found',
@@ -39,7 +27,7 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
     }
 
     request.log.error(error);
-    return reply.status(error.statusCode ?? 500).send({
+    return reply.status((error as FastifyError).statusCode ?? 500).send({
       error: 'INTERNAL_ERROR',
       message: 'Something went wrong',
     });

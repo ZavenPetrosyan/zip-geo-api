@@ -6,16 +6,20 @@ import swaggerPlugin from './plugins/swagger.js';
 import { locationsRoutes } from './modules/locations/locations.routes.js';
 
 export async function buildApp() {
-  const app = Fastify({ logger: loggerOptions });
+  const app = Fastify({
+    logger: loggerOptions,
+    ajv: {
+      customOptions: {
+        removeAdditional: false,
+        useDefaults: true,
+        coerceTypes: false,
+        allErrors: true,
+      },
+    },
+  });
 
-  app.setSchemaErrorFormatter((errors, dataVar) => {
-    const first = errors[0];
-    return new Error(
-      JSON.stringify({
-        error: 'VALIDATION_ERROR',
-        message: first?.message ?? 'Invalid request parameters',
-      })
-    );
+  app.setValidatorCompiler(({ schema }) => {
+    return (data) => ({ value: data });
   });
 
   await app.register(swaggerPlugin);
