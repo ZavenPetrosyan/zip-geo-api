@@ -9,6 +9,7 @@ export async function locationsRoutes(fastify: FastifyInstance) {
   const controller = new LocationsController(service);
 
   fastify.get('/locations/search', {
+    attachValidation: true,
     schema: {
       tags: ['Locations'],
       summary: 'Forward lookup by city, state or ZIP code',
@@ -25,6 +26,7 @@ export async function locationsRoutes(fastify: FastifyInstance) {
   }, controller.forwardSearch);
 
   fastify.get('/locations/reverse', {
+    attachValidation: true,
     schema: {
       tags: ['Locations'],
       summary: 'Reverse geocoding — find nearest location by coordinates',
@@ -40,6 +42,7 @@ export async function locationsRoutes(fastify: FastifyInstance) {
   }, controller.reverseSearch);
 
   fastify.get('/locations/radius', {
+    attachValidation: true,
     schema: {
       tags: ['Locations'],
       summary: 'Find all locations within a radius',

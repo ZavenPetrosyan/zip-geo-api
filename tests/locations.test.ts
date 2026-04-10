@@ -34,6 +34,18 @@ describe('Locations API', () => {
           coordinates: [-118.2480, 33.9731],
         },
       },
+      {
+        zip: '90210',
+        city: 'Beverly Hills',
+        state: 'CA',
+        county: 'Los Angeles County',
+        timezone: 'America/Los_Angeles',
+        population: 21733,
+        location: {
+          type: 'Point',
+          coordinates: [-118.4065, 34.0901],
+        },
+      },
     ]);
   });
 
@@ -128,5 +140,18 @@ describe('Locations API', () => {
     const body = JSON.parse(response.body);
     expect(body.error).toBe('NOT_FOUND');
     expect(body.message).toBeDefined();
+  });
+
+  it('forward lookup works with ZIP code', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/locations/search?q=90210',
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body);
+    expect(body.data).toBeInstanceOf(Array);
+    expect(body.data.length).toBeGreaterThan(0);
+    expect(body.data[0].zip).toBe('90210');
   });
 });

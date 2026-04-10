@@ -18,10 +18,6 @@ export async function buildApp() {
     },
   });
 
-  app.setValidatorCompiler(({ schema }) => {
-    return (data) => ({ value: data });
-  });
-
   await app.register(swaggerPlugin);
   await app.register(errorHandlerPlugin);
   await app.register(sensiblePlugin);

@@ -7,9 +7,11 @@ export class LocationsRepository {
     state?: string,
     limit?: number
   ): Promise<LocationDocument[]> {
-    const filter: Record<string, unknown> = {
-      $text: { $search: query },
-    };
+    const isZipCode = /^\d{3,5}$/.test(query);
+
+    const filter: Record<string, unknown> = isZipCode
+      ? { zip: { $regex: `^${query}`, $options: 'i' } }
+      : { $text: { $search: query } };
 
     if (state) {
       filter.state = state;
@@ -35,6 +37,7 @@ export class LocationsRepository {
             type: 'Point',
             coordinates: [longitude, latitude],
           },
+          $maxDistance: 50000,
         },
       },
     }).lean() as Promise<LocationDocument | null>;
@@ -46,12 +49,14 @@ export class LocationsRepository {
     radiusKm: number,
     limit?: number
   ): Promise<LocationDocument[]> {
-    const radiusInRadians = radiusKm / 6378.1;
-
     const queryBuilder = Location.find({
       location: {
-        $geoWithin: {
-          $centerSphere: [[longitude, latitude], radiusInRadians],
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+          $maxDistance: radiusKm * 1000,
         },
       },
     }).lean();
