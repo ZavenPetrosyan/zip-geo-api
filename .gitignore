@@ -5,7 +5,6 @@ node_modules/
 dist/
 
 # Data files
-scripts/data/*.csv
 scripts/data/*.zip
 scripts/data/*.xlsx
 scripts/data/*.pdf
