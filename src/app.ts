@@ -4,6 +4,7 @@ import { sensiblePlugin } from './plugins/sensible.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
 import swaggerPlugin from './plugins/swagger.js';
 import { locationsRoutes } from './modules/locations/locations.routes.js';
+import { readyRoutes } from './modules/ready/ready.routes.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -29,6 +30,7 @@ export async function buildApp() {
     });
   });
 
+  await app.register(readyRoutes);
   await app.register(locationsRoutes, { prefix: '/api/v1' });
 
   return app;
